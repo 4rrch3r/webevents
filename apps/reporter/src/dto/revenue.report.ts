@@ -1,4 +1,5 @@
 import { IsOptional, IsString, IsDateString } from 'class-validator';
+import { WebhookSources } from 'libs/utils';
 
 export class RevenueReportDto {
   @IsDateString()
@@ -8,7 +9,7 @@ export class RevenueReportDto {
   to: string;
 
   @IsString()
-  source: 'facebook' | 'tiktok';
+  source: WebhookSources.FACEBOOK | WebhookSources.TIKTOK;
 
   @IsOptional()
   @IsString()

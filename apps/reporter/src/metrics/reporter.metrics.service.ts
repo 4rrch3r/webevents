@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Histogram, Counter, Registry } from 'prom-client';
+import { METRIC_HELP, METRIC_LABELS, METRIC_NAMES } from '../utils';
 
 @Injectable()
 export class ReporterMetricsService {
@@ -9,26 +10,25 @@ export class ReporterMetricsService {
   private readonly errorCounter: Counter<string>;
 
   constructor() {
-    // Create metrics
     this.requestDurationHistogram = new Histogram({
-      name: 'reporter_request_duration_seconds',
-      help: 'Duration of reporter service requests in seconds',
-      labelNames: ['category', 'success'],
-      buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10], // Define your buckets
+      name: METRIC_NAMES.REQUEST_DURATION,
+      help: METRIC_HELP.REQUEST_DURATION,
+      labelNames: METRIC_LABELS.DURATION,
+      buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
       registers: [this.registry],
     });
 
     this.requestCounter = new Counter({
-      name: 'reporter_request_count',
-      help: 'Total number of reporter service requests',
-      labelNames: ['category'],
+      name: METRIC_NAMES.REQUEST_COUNT,
+      help: METRIC_HELP.REQUEST_COUNT,
+      labelNames: METRIC_LABELS.COUNT,
       registers: [this.registry],
     });
 
     this.errorCounter = new Counter({
-      name: 'reporter_error_count',
-      help: 'Total number of reporter service errors',
-      labelNames: ['category'],
+      name: METRIC_NAMES.ERROR_COUNT,
+      help: METRIC_HELP.ERROR_COUNT,
+      labelNames: METRIC_LABELS.COUNT,
       registers: [this.registry],
     });
   }

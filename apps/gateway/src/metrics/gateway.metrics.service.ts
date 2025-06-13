@@ -59,17 +59,3 @@ export class GatewayMetricsService {
     return this.registry.contentType;
   }
 }
-// @Injectable()
-// export class GatewayMetricsService {
-//   constructor(
-//     @InjectMetric('gateway_accepted_events')
-//     private readonly acceptedEvents: Counter,
-//   ) {}
-
-//   incAcceptedEvents(count: number = 1) {
-//     this.acceptedEvents.inc(count);
-//   }
-// }
-// apps/gateway/src/metrics/gateway-metrics.service.ts
-
-// src/metrics/gateway.metrics.service.ts

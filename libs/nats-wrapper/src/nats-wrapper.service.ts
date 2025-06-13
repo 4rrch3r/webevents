@@ -1,11 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import {
-  connect,
-  JSONCodec,
-  JetStreamClient,
-  NatsConnection,
-  AckPolicy,
-} from 'nats';
+import { DEFAULT_SUBJECT_PATTERN, NatsSubjects } from 'libs/utils';
+import { connect, JSONCodec, JetStreamClient, NatsConnection } from 'nats';
 
 @Injectable()
 export class NatsWrapperService implements OnModuleInit, OnModuleDestroy {
@@ -14,38 +9,23 @@ export class NatsWrapperService implements OnModuleInit, OnModuleDestroy {
   private codec = JSONCodec();
 
   async onModuleInit() {
-    this.nc = await connect({ servers: 'nats://nats:4222' });
+    this.nc = await connect({ servers: process.env.NATS_URL });
     this.js = this.nc.jetstream();
     const jsm = await this.nc.jetstreamManager();
 
     try {
       await jsm.streams.add({
-        name: 'events_facebook',
-        subjects: ['events_*'],
+        name: NatsSubjects.EVENTS_FACEBOOK,
+        subjects: [DEFAULT_SUBJECT_PATTERN],
       });
       await jsm.streams.add({
-        name: 'events_tiktok',
-        subjects: ['events_*'],
+        name: NatsSubjects.EVENTS_TIKTOK,
+        subjects: [DEFAULT_SUBJECT_PATTERN],
       });
       console.log(`[NATS] Stream 'EVENTS' created`);
     } catch {
       console.log(`[NATS] Stream 'EVENTS' error`);
     }
-    // try {
-    //   await jsm.streams.info('events_facebook');
-    //   // await jsm.streams.info('events_tiktok');
-    // } catch {
-    //   await jsm.streams.add({
-    //     name: 'events_facebook',
-    //     subjects: ['events_*'],
-    //   });
-    //   await jsm.streams.add({
-    //     name: 'events_tiktok',
-    //     subjects: ['events_*'],
-    //   });
-    //   console.log(`[NATS] Stream 'EVENTS' created`);
-    // }
-
     console.log('[NATS] Connected');
   }
 

@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: apps/gateway/Dockerfile
     container_name: gateway
+    env_file:
+      - .env
     ports:
       - '3000:3000'
     volumes:
@@ -82,7 +84,7 @@ services:
   grafana:
     image: grafana/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - ./libs/metrics-core/src/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./libs/metrics-core/src/provisioning/datasources:/etc/grafana/provisioning/datasources
@@ -91,15 +93,15 @@ services:
     networks:
       - webhook-network
 
-  # publisher:
-  #   image: andriiuni/events
-  #   container_name: publisher
-  #   depends_on:
-  #     - gateway
-  #   environment:
-  #     EVENT_ENDPOINT: http://gateway:3000/webhooks
-  #   networks:
-  #     - webhook-network
+  publisher:
+    image: andriiuni/events
+    container_name: publisher
+    depends_on:
+      - gateway
+    environment:
+      EVENT_ENDPOINT: http://gateway:3000/webhooks
+    networks:
+      - webhook-network
 
   nats:
     image: nats
@@ -110,13 +112,14 @@ services:
     command: ['-js', '-m', '8222']
     networks:
       - webhook-network
+
   postgres:
     image: postgres
     restart: always
     environment:
-      - POSTGRES_USER=myuser
-      - POSTGRES_PASSWORD=mypassword
-      - POSTGRES_DB=webevents
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
     ports:
@@ -124,10 +127,10 @@ services:
     networks:
       - webhook-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U myuser -d webevents']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
       timeout: 5s
-      retries: 15
+      retries: 30
 
   migrate:
     image: node:18-alpine
@@ -139,11 +142,11 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://myuser:mypassword@postgres:5432/webevents
+      DATABASE_URL: ${DATABASE_URL}
     command: >
       sh -c "
       apk add --no-cache postgresql-client &&
-      until pg_isready -h postgres -U myuser -d webevents; do
+      until pg_isready -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_DB}; do
         echo 'Waiting for Postgres...';
         sleep 2;
       done;
@@ -154,38 +157,6 @@ services:
       "
     networks:
       - webhook-network
-
-  # postgres:
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_USER=myuser
-  #     - POSTGRES_PASSWORD=mypassword
-  #     - POSTGRES_DB=webevents
-  #   volumes:
-  #     - ./data/postgres:/var/lib/postgresql/data
-  #   ports:
-  #     - '5432:5432'
-  #   networks:
-  #     - webhook-network
-  #   healthcheck:
-  #     test: ['CMD-SHELL', 'pg_isready -U user -d dbname']
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
-
-  # migrations:
-  #   build: .
-  #   environment:
-  #     PRISMA_SCHEMA_PATH: './libs/prisma/schema/schemas'
-  #   command: >
-  #     sh -c "
-  #     npx prisma migrate deploy --schema=$$PRISMA_SCHEMA_PATH &&
-  #     node dist/main
-  #     "
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
 
 networks:
   webhook-network:

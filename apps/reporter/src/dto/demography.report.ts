@@ -1,12 +1,5 @@
-import {
-  IsString,
-  IsDateString,
-  IsOptional,
-  IsIn,
-  IsNumber,
-  IsArray,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsIn, IsDateString } from 'class-validator';
+import { WebhookSources } from 'libs/utils';
 
 export class DemographyReportDto {
   @IsDateString()
@@ -15,33 +8,10 @@ export class DemographyReportDto {
   @IsDateString()
   to: string;
 
-  @IsIn(['facebook', 'tiktok'])
-  source: 'facebook' | 'tiktok';
+  @IsIn([WebhookSources.FACEBOOK, WebhookSources.TIKTOK])
+  source: WebhookSources.FACEBOOK | WebhookSources.TIKTOK;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  genders?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @Type(() => Number)
-  ageRanges?: [number, number][];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  countries?: string[];
-
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @Type(() => Number)
-  followerRanges?: [number, number][];
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  devices?: ('Android' | 'iOS' | 'Desktop')[];
+  @IsString()
+  country?: string;
 }

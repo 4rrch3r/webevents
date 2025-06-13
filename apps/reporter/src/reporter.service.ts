@@ -7,6 +7,8 @@ import { PrismaService } from '@app/prisma';
 import { RevenueReportDto } from './dto/revenue.report';
 import { DemographyReportDto } from './dto/demography.report';
 import { ReporterMetricsService } from './metrics/reporter.metrics.service';
+import { WebhookSources } from 'libs/utils';
+import { METRIC_REPORTS } from './utils';
 
 @Injectable()
 export class ReporterService {
@@ -19,11 +21,11 @@ export class ReporterService {
 
   async generateRevenueReport(params: RevenueReportDto) {
     return this.reporterMetricsService.trackLatency(
-      'revenue_report',
+      METRIC_REPORTS.REVENUE,
       async () => {
         try {
           const { from, to, source, campaignId } = params;
-          const isSourceFacebook = source === 'facebook';
+          const isSourceFacebook = source === WebhookSources.FACEBOOK;
 
           const where: any = {
             timestamp: {
@@ -64,71 +66,58 @@ export class ReporterService {
 
   async generateDemographicsReport(params: DemographyReportDto) {
     return this.reporterMetricsService.trackLatency(
-      'demographics_report',
+      METRIC_REPORTS.DEMOGRAPHICS,
       async () => {
         try {
-          const { from, to, source } = params;
-          const isSourceFacebook = source === 'facebook';
+          const { from, to, source, country } = params;
+          const isSourceFacebook = source === WebhookSources.FACEBOOK;
+
+          const eventFilter: any = {
+            timestamp: {
+              gte: new Date(from),
+              lte: new Date(to),
+            },
+          };
+
+          const userFilters: any = {
+            events: {
+              some: eventFilter,
+            },
+          };
+
+          if (country && isSourceFacebook) {
+            userFilters.country = country;
+          }
+
+          const eventIncludeFilter: any = {
+            where: eventFilter,
+            include: {
+              engagementTop: true,
+              engagementBottom: true,
+            },
+            orderBy: {
+              timestamp: 'desc',
+            },
+            take: 1,
+          };
+
+          if (country && !isSourceFacebook) {
+            eventIncludeFilter.where.engagementTop = {
+              country,
+            };
+          }
 
           const users = isSourceFacebook
             ? await this.prisma.fbUser.findMany({
-                where: {
-                  events: {
-                    some: {
-                      timestamp: {
-                        gte: new Date(from),
-                        lte: new Date(to),
-                      },
-                    },
-                  },
-                },
+                where: userFilters,
                 include: {
-                  events: {
-                    where: {
-                      timestamp: {
-                        gte: new Date(from),
-                        lte: new Date(to),
-                      },
-                    },
-                    include: {
-                      engagementTop: isSourceFacebook ? false : true,
-                      engagementBottom: true,
-                    },
-                    orderBy: {
-                      timestamp: 'desc',
-                    },
-                    take: 1,
-                  },
+                  events: eventIncludeFilter,
                 },
               })
             : await this.prisma.ttUser.findMany({
-                where: {
-                  events: {
-                    some: {
-                      timestamp: {
-                        gte: new Date(from),
-                        lte: new Date(to),
-                      },
-                    },
-                  },
-                },
+                where: userFilters,
                 include: {
-                  events: {
-                    where: {
-                      timestamp: {
-                        gte: new Date(from),
-                        lte: new Date(to),
-                      },
-                    },
-                    include: {
-                      engagementTop: isSourceFacebook ? false : true,
-                      engagementBottom: true,
-                    },
-                    orderBy: {
-                      timestamp: 'desc',
-                    },
-                    take: 1,
-                  },
+                  events: eventIncludeFilter,
                 },
               });
 
@@ -158,6 +147,7 @@ export class ReporterService {
                 lastEventType: latestEvent?.eventType,
                 lastEventTime: latestEvent?.timestamp,
                 watchTime: latestEvent?.engagementTop?.watchTime,
+                country: latestEvent?.engagementTop?.country,
                 totalEvents: user.events.length,
               };
             }

@@ -8,6 +8,7 @@ export class DemographyReportDto {
   @IsDateString()
   to: string;
 
+  @IsString()
   @IsIn([WebhookSources.FACEBOOK, WebhookSources.TIKTOK])
   source: WebhookSources.FACEBOOK | WebhookSources.TIKTOK;
 

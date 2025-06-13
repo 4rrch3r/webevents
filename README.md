@@ -13,7 +13,7 @@ And such custom libs:
 - **Nats-wrapper** — custom wrapper to pub/sub streams in nats
 - **Prisma module** — to serve requests, work with schemas, migrations etc.
 
-Technical requirements are here : https://opaque-production-68e.notion.site/Universe-Group-1c9ce9899cb7803181a0f3dde873fa31
+Technical requirements are listed here : https://opaque-production-68e.notion.site/Universe-Group-1c9ce9899cb7803181a0f3dde873fa31
 
 ## Technologies Used
 
@@ -27,6 +27,10 @@ Technical requirements are here : https://opaque-production-68e.notion.site/Univ
 
 1. Prepopulate .env file (from .env.sample)
 2. Run `npm run start:dev:all` (only dev mode)
+
+## Docs
+
+Swagger documentation for **Reporter** module is listed here : `<REPORTER_PORT>/api/docs`
 
 ## Notes
 

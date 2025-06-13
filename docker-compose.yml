@@ -148,6 +148,7 @@ services:
         sleep 2;
       done;
       echo 'Postgres is ready. Running migrations...';
+      npx prisma generate --schema=./libs/prisma/schemas/schema.prisma &&
       npx prisma migrate deploy --schema=./libs/prisma/schemas/schema.prisma;
       echo 'Migrations complete.';
       "

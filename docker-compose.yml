@@ -14,6 +14,9 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:gateway
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -32,6 +35,9 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:fb-collector
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -50,6 +56,9 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:ttk-collector
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -68,6 +77,9 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:reporter
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -78,6 +90,9 @@ services:
       - ./libs/metrics-core/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - '9090:9090'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -90,6 +105,9 @@ services:
       - ./libs/metrics-core/src/provisioning/datasources:/etc/grafana/provisioning/datasources
     ports:
       - '3004:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - webhook-network
 
@@ -98,6 +116,8 @@ services:
     container_name: publisher
     depends_on:
       - gateway
+      - ttk-collector
+      - fb-collector
     environment:
       EVENT_ENDPOINT: http://gateway:3000/webhooks
     networks:

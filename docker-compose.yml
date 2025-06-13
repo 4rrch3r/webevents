@@ -1,0 +1,194 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    container_name: gateway
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./:/app
+      - ./node_modules:/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    command: npm run start:dev:gateway
+    networks:
+      - webhook-network
+
+  fb-collector:
+    build:
+      context: .
+      dockerfile: apps/fb-collector/Dockerfile
+    container_name: fb-collector
+    env_file:
+      - .env
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./:/app
+      - ./node_modules:/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    command: npm run start:dev:fb-collector
+    networks:
+      - webhook-network
+
+  ttk-collector:
+    build:
+      context: .
+      dockerfile: apps/ttk-collector/Dockerfile
+    container_name: ttk-collector
+    env_file:
+      - .env
+    ports:
+      - '3002:3002'
+    volumes:
+      - ./:/app
+      - ./node_modules:/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    command: npm run start:dev:ttk-collector
+    networks:
+      - webhook-network
+
+  reporter:
+    build:
+      context: .
+      dockerfile: apps/reporter/Dockerfile
+    container_name: reporter
+    env_file:
+      - .env
+    ports:
+      - '3003:3003'
+    volumes:
+      - ./:/app
+      - ./node_modules:/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    command: npm run start:dev:reporter
+    networks:
+      - webhook-network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./libs/metrics-core/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+    networks:
+      - webhook-network
+
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./libs/metrics-core/src/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./libs/metrics-core/src/provisioning/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - '3004:3000'
+    networks:
+      - webhook-network
+
+  # publisher:
+  #   image: andriiuni/events
+  #   container_name: publisher
+  #   depends_on:
+  #     - gateway
+  #   environment:
+  #     EVENT_ENDPOINT: http://gateway:3000/webhooks
+  #   networks:
+  #     - webhook-network
+
+  nats:
+    image: nats
+    container_name: nats
+    ports:
+      - '4222:4222'
+      - '8222:8222'
+    command: ['-js', '-m', '8222']
+    networks:
+      - webhook-network
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=webevents
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - webhook-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U myuser -d webevents']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  migrate:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://myuser:mypassword@postgres:5432/webevents
+    command: >
+      sh -c "
+      apk add --no-cache postgresql-client &&
+      until pg_isready -h postgres -U myuser -d webevents; do
+        echo 'Waiting for Postgres...';
+        sleep 2;
+      done;
+      echo 'Postgres is ready. Running migrations...';
+      npx prisma migrate deploy --schema=./libs/prisma/schemas/schema.prisma;
+      echo 'Migrations complete.';
+      "
+    networks:
+      - webhook-network
+
+  # postgres:
+  #   image: postgres
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_USER=myuser
+  #     - POSTGRES_PASSWORD=mypassword
+  #     - POSTGRES_DB=webevents
+  #   volumes:
+  #     - ./data/postgres:/var/lib/postgresql/data
+  #   ports:
+  #     - '5432:5432'
+  #   networks:
+  #     - webhook-network
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'pg_isready -U user -d dbname']
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+  # migrations:
+  #   build: .
+  #   environment:
+  #     PRISMA_SCHEMA_PATH: './libs/prisma/schema/schemas'
+  #   command: >
+  #     sh -c "
+  #     npx prisma migrate deploy --schema=$$PRISMA_SCHEMA_PATH &&
+  #     node dist/main
+  #     "
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+networks:
+  webhook-network:
+    driver: bridge
+
+volumes:
+  node_modules:

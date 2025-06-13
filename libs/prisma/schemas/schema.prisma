@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Facebook Models
+model FbUser {
+  id               String               @id @default(uuid())
+  externalId       String                @unique              
+  name             String
+  age              Int
+  gender           String
+  country          String
+  city             String
+
+  // Relations
+  topEngagements   FbEngagementTop[]
+  bottomEngagements FbEngagementBottom[]
+  events          FbEvent[]
+  
+  @@map("fb_users")
+}
+
+model FbEngagementTop {
+  id              String     @id @default(uuid())
+  actionTime      DateTime   @map("action_time")
+  referrer        String
+  videoId         String?    @map("video_id")
+  
+  // Relations
+  user           FbUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  events         FbEvent[]
+  
+  @@map("fb_engagement_top")
+}
+
+model FbEngagementBottom {
+  id              String     @id @default(uuid())
+  adId            String     @map("ad_id")
+  campaignId      String     @map("campaign_id")
+  clickPosition   String     @map("click_position")
+  device          String
+  browser         String
+  purchaseAmount  Float?     @map("purchase_amount")
+  
+  // Relations
+  user           FbUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  events         FbEvent[]
+  
+  @@map("fb_engagement_bottom")
+}
+
+model FbEvent {
+  id              String     @id @default(uuid())
+  externalId      String                @unique
+  timestamp       DateTime
+  funnelStage     String     @map("funnel_stage")
+  eventType       String     @map("event_type")
+  
+  // Relations
+  user           FbUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  
+  engagementTop     FbEngagementTop? @relation(fields: [engagementTopId], references: [id])
+  engagementTopId String?   @map("engagement_top_id")
+  
+  engagementBottom     FbEngagementBottom? @relation(fields: [engagementBottomId], references: [id])
+  engagementBottomId String? @map("engagement_bottom_id")
+
+  @@map("fb_events")
+}
+
+// TikTok Models
+model TtUser {
+  id               String               @id @default(uuid())
+  externalId       String                @unique 
+  username         String
+  followers        Int
+  
+  // Relations
+  topEngagements   TtEngagementTop[]
+  bottomEngagements TtEngagementBottom[]
+  events          TtEvent[]
+  
+  @@map("tt_users")
+}
+
+model TtEngagementTop {
+  id              String     @id @default(uuid())
+  videoId         String     @map("video_id")
+  watchTime       Int        @map("watch_time")
+  percentageWatched Int      @map("percentage_watched")
+  device          String
+  country         String
+  
+  // Relations
+  user           TtUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  events         TtEvent[]
+  
+  @@map("tt_engagement_top")
+}
+
+model TtEngagementBottom {
+  id              String     @id @default(uuid())
+  profileId       String?    @map("profile_id")
+  purchasedItem   String?    @map("purchased_item")
+  purchaseAmount  Float?     @map("purchase_amount")
+  actionTime      DateTime   @map("action_time")
+  
+  // Relations
+  user           TtUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  events         TtEvent[]
+  
+  @@map("tt_engagement_bottom")
+}
+
+model TtEvent {
+  id              String     @id @default(uuid())
+  externalId       String                @unique
+  timestamp       DateTime
+  funnelStage     String     @map("funnel_stage")
+  eventType       String     @map("event_type")
+  
+  // Relations
+  user           TtUser     @relation(fields: [userId], references: [id])
+  userId         String     @map("user_id")
+  
+  engagementTop     TtEngagementTop? @relation(fields: [engagementTopId], references: [id])
+  engagementTopId String?   @map("engagement_top_id")
+  
+  engagementBottom     TtEngagementBottom? @relation(fields: [engagementBottomId], references: [id])
+  engagementBottomId String? @map("engagement_bottom_id")
+  
+  @@map("tt_events")
+}

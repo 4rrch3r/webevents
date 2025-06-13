@@ -1,0 +1,327 @@
+{
+  "title": "Gateway Metrics",
+  "uid": "gateway-events",
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "title": "Accepted Events",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_accepted_events_total[1m]))",
+          "refId": "A",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(ttk_accepted_events_total[1m]))",
+          "refId": "B",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(fb_accepted_events_total[1m]))",
+          "refId": "C",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "title": "Processed Events",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_processed_events_total[1m]))",
+          "refId": "A",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(ttk_processed_events_total[1m]))",
+          "refId": "B",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(fb_processed_events_total[1m]))",
+          "refId": "C",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "title": "Failed Events",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_failed_events_total[1m]))",
+          "refId": "A",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(ttk_failed_events_total[1m]))",
+          "refId": "B",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(fb_failed_events_total[1m]))",
+          "refId": "C",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "title": "Failed Events",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_failed_events_total[1m]))",
+          "refId": "A",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(ttk_failed_events_total[1m]))",
+          "refId": "B",
+          "datasource": "Prometheus"
+        },
+        {
+          "expr": "sum(rate(fb_failed_events_total[1m]))",
+          "refId": "C",
+          "datasource": "Prometheus"
+        }
+      ]
+    },
+    {
+      "title": "Request Duration (95th Percentile)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(reporter_request_duration_seconds_bucket[1m])) by (le, category))",
+          "legendFormat": "{{category}}",
+          "refId": "A",
+          "datasource": "Prometheus"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(reporter_request_count[1m])) by (category)",
+          "legendFormat": "{{category}}",
+          "refId": "A",
+          "datasource": "Prometheus"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Error Rate",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(reporter_error_count[1m])) by (category)",
+          "legendFormat": "{{category}}",
+          "refId": "A",
+          "datasource": "Prometheus"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Error Percentage",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(reporter_error_count[1m])) by (category) / sum(rate(reporter_request_count[1m])) by (category) * 100",
+          "legendFormat": "{{category}}",
+          "refId": "A",
+          "datasource": "Prometheus"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  }
+}

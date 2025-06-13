@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/webevents/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/webevents/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/webevents",
+  "projects": {
+    "webevents": {
+      "type": "application",
+      "root": "apps/webevents",
+      "entryFile": "main",
+      "sourceRoot": "apps/webevents/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/webevents/tsconfig.app.json"
+      }
+    },
+    "gateway": {
+      "type": "application",
+      "root": "apps/gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/gateway/tsconfig.app.json"
+      }
+    },
+    "ttk-collector": {
+      "type": "application",
+      "root": "apps/ttk-collector",
+      "entryFile": "main",
+      "sourceRoot": "apps/ttk-collector/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ttk-collector/tsconfig.app.json"
+      }
+    },
+    "fb-collector": {
+      "type": "application",
+      "root": "apps/fb-collector",
+      "entryFile": "main",
+      "sourceRoot": "apps/fb-collector/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/fb-collector/tsconfig.app.json"
+      }
+    },
+    "nats-wrapper": {
+      "type": "library",
+      "root": "libs/nats-wrapper",
+      "entryFile": "index",
+      "sourceRoot": "libs/nats-wrapper/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/nats-wrapper/tsconfig.lib.json"
+      }
+    },
+    "prisma": {
+      "type": "library",
+      "root": "libs/prisma",
+      "entryFile": "index",
+      "sourceRoot": "libs/prisma/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/prisma/tsconfig.lib.json"
+      }
+    },
+    "reporter": {
+      "type": "application",
+      "root": "apps/reporter",
+      "entryFile": "main",
+      "sourceRoot": "apps/reporter/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/reporter/tsconfig.app.json"
+      }
+    },
+    "graphana": {
+      "type": "application",
+      "root": "apps/graphana",
+      "entryFile": "main",
+      "sourceRoot": "apps/graphana/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/graphana/tsconfig.app.json"
+      }
+    },
+    "grafana": {
+      "type": "application",
+      "root": "apps/grafana",
+      "entryFile": "main",
+      "sourceRoot": "apps/grafana/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/grafana/tsconfig.app.json"
+      }
+    },
+    "prometheus": {
+      "type": "application",
+      "root": "apps/prometheus",
+      "entryFile": "main",
+      "sourceRoot": "apps/prometheus/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/prometheus/tsconfig.app.json"
+      }
+    },
+    "metrics": {
+      "type": "application",
+      "root": "apps/metrics",
+      "entryFile": "main",
+      "sourceRoot": "apps/metrics/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/metrics/tsconfig.app.json"
+      }
+    },
+    "metrics-core": {
+      "type": "library",
+      "root": "libs/metrics-core",
+      "entryFile": "index",
+      "sourceRoot": "libs/metrics-core/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/metrics-core/tsconfig.lib.json"
+      }
+    }
+  }
+}

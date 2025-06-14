@@ -14,6 +14,16 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:gateway
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3000/health/ready'', res => process.exit(res.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -35,9 +45,21 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:fb-collector
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3001/health/ready'', res => process.exit(res.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
     depends_on:
       migrate:
         condition: service_completed_successfully
+      gateway:
+        condition: service_healthy
     networks:
       - webhook-network
 
@@ -56,9 +78,21 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:ttk-collector
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3002/health/ready'', res => process.exit(res.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
     depends_on:
       migrate:
         condition: service_completed_successfully
+      gateway:
+        condition: service_healthy
     networks:
       - webhook-network
 
@@ -77,9 +111,23 @@ services:
     environment:
       - WATCHPACK_POLLING=true
     command: npm run start:dev:reporter
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3003/health/ready'', res => process.exit(res.statusCode === 200 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
     depends_on:
       migrate:
         condition: service_completed_successfully
+      fb-collector:
+        condition: service_healthy
+      ttk-collector:
+        condition: service_healthy
     networks:
       - webhook-network
 
@@ -93,6 +141,9 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      reporter:
+        condition: service_healthy
+
     networks:
       - webhook-network
 
@@ -108,6 +159,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      reporter:
+        condition: service_healthy
     networks:
       - webhook-network
 
@@ -115,9 +168,14 @@ services:
     image: andriiuni/events
     container_name: publisher
     depends_on:
-      - gateway
-      - ttk-collector
-      - fb-collector
+      migrate:
+        condition: service_completed_successfully
+      gateway:
+        condition: service_healthy
+      fb-collector:
+        condition: service_healthy
+      ttk-collector:
+        condition: service_healthy
     environment:
       EVENT_ENDPOINT: http://gateway:3000/webhooks
     networks:

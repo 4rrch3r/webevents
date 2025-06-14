@@ -29,6 +29,10 @@ export class NatsWrapperService implements OnModuleInit, OnModuleDestroy {
     console.log('[NATS] Connected');
   }
 
+  async isConnected() {
+    return !!this.nc.closed;
+  }
+
   async publish(subject: string, payload: any) {
     await this.nc.publish(subject, this.codec.encode(payload));
     console.log(`[NATS] Published to ${subject}`);

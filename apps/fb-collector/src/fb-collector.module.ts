@@ -6,9 +6,10 @@ import { FbCollectorValidationService } from './validation/fb-collector.validati
 import { PrismaModule } from '@app/prisma';
 import { FbCollectorDataService } from './data/fb-collector.data.service';
 import { FbCollectorMetricsService } from './metrics/fb-collector.metrics.service';
+import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [NatsWrapperModule, PrismaModule],
+  imports: [NatsWrapperModule, PrismaModule, HealthModule],
   controllers: [FbCollectorController],
   providers: [
     FbCollectorService,

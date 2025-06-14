@@ -6,9 +6,10 @@ import { PrismaModule } from '@app/prisma';
 import { TtkCollectorValidationService } from './validation/ttk-collector.validation.service';
 import { TtkCollectorDataService } from './data/ttk-collector.data.service';
 import { TtkCollectorMetricsService } from './metrics/ttk-collector.metrics.service';
+import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [NatsWrapperModule, PrismaModule],
+  imports: [NatsWrapperModule, PrismaModule, HealthModule],
   controllers: [TtkCollectorController],
   providers: [
     TtkCollectorService,

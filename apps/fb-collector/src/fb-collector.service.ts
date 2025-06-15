@@ -27,7 +27,7 @@ export class FbCollectorService implements OnModuleInit {
       } catch (error) {
         this.fbCollectorMetricsService.incFailedEvents();
         console.error(
-          `[FB-Collector] Error while validation using zod: ${error}`,
+          `[FB-Collector] Error while validation or processing: ${error}`,
         );
       }
     });

@@ -8,41 +8,47 @@ export class TtkCollectorDataService {
   constructor(private readonly prisma: PrismaService) {}
 
   async processTikTokEvent(eventData: TtkEvent): Promise<void> {
-    return this.prisma.$transaction(async (tx) => {
-      const user = await this.upsertUser(
-        tx as PrismaService,
-        eventData.data.user,
-      );
-      const isTopEngagement = eventData.funnelStage === 'top';
-
-      let engagementTopId: string | undefined;
-      let engagementBottomId: string | undefined;
-
-      if (isTopEngagement) {
-        const engagement = eventData.data.engagement as TiktokEngagementTop;
-        const created = await this.createTopEngagement(
+    return this.prisma.$transaction(
+      async (tx) => {
+        const user = await this.upsertUser(
           tx as PrismaService,
-          user.id,
-          engagement,
+          eventData.data.user,
         );
-        engagementTopId = created.id;
-      } else {
-        const engagement = eventData.data.engagement as TiktokEngagementBottom;
-        const created = await this.createBottomEngagement(
-          tx as PrismaService,
-          user.id,
-          engagement,
-        );
-        engagementBottomId = created.id;
-      }
+        const isTopEngagement = eventData.funnelStage === 'top';
 
-      await this.createEvent(tx as PrismaService, {
-        ...eventData,
-        userId: user.id,
-        engagementTopId,
-        engagementBottomId,
-      });
-    });
+        let engagementTopId: string | undefined;
+        let engagementBottomId: string | undefined;
+
+        if (isTopEngagement) {
+          const engagement = eventData.data.engagement as TiktokEngagementTop;
+          const created = await this.createTopEngagement(
+            tx as PrismaService,
+            user.id,
+            engagement,
+          );
+          engagementTopId = created.id;
+        } else {
+          const engagement = eventData.data
+            .engagement as TiktokEngagementBottom;
+          const created = await this.createBottomEngagement(
+            tx as PrismaService,
+            user.id,
+            engagement,
+          );
+          engagementBottomId = created.id;
+        }
+
+        await this.createEvent(tx as PrismaService, {
+          ...eventData,
+          userId: user.id,
+          engagementTopId,
+          engagementBottomId,
+        });
+      },
+      {
+        timeout: 10000,
+      },
+    );
   }
 
   private async upsertUser(

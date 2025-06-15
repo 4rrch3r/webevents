@@ -27,7 +27,7 @@ export class TtkCollectorService implements OnModuleInit {
       } catch (error) {
         this.ttkCollectorMetricsService.incFailedEvents();
         console.log(
-          `[TTK-Collector] Error while validation using zod: ${error}`,
+          `[TTK-Collector] Error while validation or processing: ${error}`,
         );
       }
     });

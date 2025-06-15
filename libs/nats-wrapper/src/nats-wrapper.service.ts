@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DEFAULT_SUBJECT_PATTERN, NatsSubjects } from 'libs/utils';
+import { DEFAULT_SUBJECT_PATTERN, NatsSubjects } from '../../../libs/utils';
 import { connect, JSONCodec, JetStreamClient, NatsConnection } from 'nats';
 
 @Injectable()

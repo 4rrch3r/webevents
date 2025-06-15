@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { NatsWrapperService } from '@app/nats-wrapper';
 import { Response } from 'express';
 import { GatewayMetricsService } from './metrics/gateway.metrics.service';
-import { NatsSubjects, WebhookSources } from 'libs/utils';
+import { NatsSubjects, WebhookSources } from '../../../libs/utils';
 
 @Controller()
 export class GatewayController {
@@ -28,9 +28,7 @@ export class GatewayController {
       return body;
     } catch (error) {
       this.gatewayMetricsService.incFailedEvents();
-      console.error(
-        `[FB-Collector] Error while validation using zod: ${error}`,
-      );
+      console.error(`[Gateway] Error while collecting webhooks: ${error}`);
     }
   }
   @Get('metrics')
@@ -40,7 +38,7 @@ export class GatewayController {
       const metrics = await this.gatewayMetricsService.getMetrics();
       res.send(metrics);
     } catch (err) {
-      res.status(500).send('Error generating metrics');
+      res.status(500).send('[Gateway] Error while generating metrics');
     }
   }
 }

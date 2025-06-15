@@ -8,8 +8,11 @@ export class FbCollectorDataService {
   constructor(private readonly prisma: PrismaService) {}
 
   async processFacebookEvent(eventData: FbEvent): Promise<void> {
-    return this.prisma.$transaction(async () => {
-      const user = await this.upsertUser(this.prisma, eventData.data.user);
+    return this.prisma.$transaction(async (tx) => {
+      const user = await this.upsertUser(
+        tx as PrismaService,
+        eventData.data.user,
+      );
       const isTopEngagement = eventData.funnelStage === 'top';
 
       let engagementTopId: string | undefined;
@@ -18,7 +21,7 @@ export class FbCollectorDataService {
       if (isTopEngagement) {
         const engagement = eventData.data.engagement as FacebookEngagementTop;
         const created = await this.createTopEngagement(
-          this.prisma,
+          tx as PrismaService,
           user.id,
           engagement,
         );
@@ -27,14 +30,14 @@ export class FbCollectorDataService {
         const engagement = eventData.data
           .engagement as FacebookEngagementBottom;
         const created = await this.createBottomEngagement(
-          this.prisma,
+          tx as PrismaService,
           user.id,
           engagement,
         );
         engagementBottomId = created.id;
       }
 
-      await this.createEvent(this.prisma, {
+      await this.createEvent(tx as PrismaService, {
         ...eventData,
         userId: user.id,
         engagementTopId,

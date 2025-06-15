@@ -8,8 +8,11 @@ export class TtkCollectorDataService {
   constructor(private readonly prisma: PrismaService) {}
 
   async processTikTokEvent(eventData: TtkEvent): Promise<void> {
-    return this.prisma.$transaction(async () => {
-      const user = await this.upsertUser(this.prisma, eventData.data.user);
+    return this.prisma.$transaction(async (tx) => {
+      const user = await this.upsertUser(
+        tx as PrismaService,
+        eventData.data.user,
+      );
       const isTopEngagement = eventData.funnelStage === 'top';
 
       let engagementTopId: string | undefined;
@@ -18,7 +21,7 @@ export class TtkCollectorDataService {
       if (isTopEngagement) {
         const engagement = eventData.data.engagement as TiktokEngagementTop;
         const created = await this.createTopEngagement(
-          this.prisma,
+          tx as PrismaService,
           user.id,
           engagement,
         );
@@ -26,14 +29,14 @@ export class TtkCollectorDataService {
       } else {
         const engagement = eventData.data.engagement as TiktokEngagementBottom;
         const created = await this.createBottomEngagement(
-          this.prisma,
+          tx as PrismaService,
           user.id,
           engagement,
         );
         engagementBottomId = created.id;
       }
 
-      await this.createEvent(this.prisma, {
+      await this.createEvent(tx as PrismaService, {
         ...eventData,
         userId: user.id,
         engagementTopId,

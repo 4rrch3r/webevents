@@ -4,59 +4,60 @@ import { connect, JSONCodec, JetStreamClient, NatsConnection } from 'nats';
 
 @Injectable()
 export class NatsWrapperService implements OnModuleInit, OnModuleDestroy {
-  private nc: NatsConnection;
-  private js: JetStreamClient;
-  private codec = JSONCodec();
+  private connection: NatsConnection;
+  private jetstream: JetStreamClient;
+  private jsonCodec = JSONCodec();
 
   async onModuleInit() {
-    this.nc = await connect({ servers: process.env.NATS_URL });
-    this.js = this.nc.jetstream();
-    const jsm = await this.nc.jetstreamManager();
+    this.connection = await connect({ servers: process.env.NATS_URL });
+    this.jetstream = this.connection.jetstream();
 
+    const jsm = await this.connection.jetstreamManager();
+    await this.setupStream(jsm, NatsSubjects.EVENTS_FACEBOOK);
+    await this.setupStream(jsm, NatsSubjects.EVENTS_TIKTOK);
+
+    console.log('NATS connected and ready');
+  }
+
+  private async setupStream(jsm: any, name: string) {
     try {
       await jsm.streams.add({
-        name: NatsSubjects.EVENTS_FACEBOOK,
+        name,
         subjects: [DEFAULT_SUBJECT_PATTERN],
       });
-      await jsm.streams.add({
-        name: NatsSubjects.EVENTS_TIKTOK,
-        subjects: [DEFAULT_SUBJECT_PATTERN],
-      });
-      console.log(`[NATS] Stream 'EVENTS' created`);
-    } catch {
-      console.log(`[NATS] Stream 'EVENTS' error`);
+    } catch (error) {
+      if (error.api_error.err_code !== 10065) {
+        console.error('Failed to create stream:', name, error);
+      }
     }
-    console.log('[NATS] Connected');
   }
 
   async isConnected() {
-    return !!this.nc.closed;
+    return !this.connection.isClosed();
   }
 
-  async publish(subject: string, payload: any) {
-    await this.nc.publish(subject, this.codec.encode(payload));
-    console.log(`[NATS] Published to ${subject}`);
+  async publish(subject: string, data: any) {
+    this.connection.publish(subject, this.jsonCodec.encode(data));
   }
 
-  async subscribe(subject: string, handler: (data: any) => void) {
-    const sub = this.nc.subscribe(subject);
-
-    console.log(`[NATS] Subscribed to ${subject}`);
+  async subscribe(subject: string, callback: (data: any) => void) {
+    const subscription = this.connection.subscribe(subject);
 
     (async () => {
-      for await (const msg of sub) {
-        const data = this.codec.decode(msg.data);
+      for await (const message of subscription) {
         try {
-          await handler(data);
-        } catch (err) {
-          console.error('[NATS] Error in handler:', err);
+          callback(this.jsonCodec.decode(message.data));
+        } catch (error) {
+          console.error('Message processing failed:', error);
         }
       }
     })();
   }
 
   async onModuleDestroy() {
-    await this.nc.drain();
-    console.log('[NATS] Connection closed');
+    if (!this.connection.isClosed()) {
+      await this.connection.drain();
+      console.log('NATS connection closed');
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { NatsWrapperService } from '@app/nats-wrapper';
 import { Response } from 'express';
 import { GatewayMetricsService } from './metrics/gateway.metrics.service';
@@ -17,7 +17,7 @@ export class GatewayController {
       const webhookCount = body.length;
       this.gatewayMetricsService.incAcceptedEvents(webhookCount);
 
-      for (let webhook of body) {
+      for (const webhook of body) {
         if (webhook.source === WebhookSources.TIKTOK) {
           this.nats.publish(NatsSubjects.EVENTS_TIKTOK, webhook);
         } else if (webhook.source === WebhookSources.FACEBOOK) {

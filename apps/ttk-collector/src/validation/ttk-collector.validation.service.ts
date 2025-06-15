@@ -5,7 +5,6 @@ import {
   ttkEngagementTopSchema,
   TtkEvent,
   ttkEventSchema,
-  ttkUserSchema,
 } from '../schemas/ttk-collector.events.schema';
 
 @Injectable()

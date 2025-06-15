@@ -8,7 +8,7 @@ export class TtkCollectorDataService {
   constructor(private readonly prisma: PrismaService) {}
 
   async processTikTokEvent(eventData: TtkEvent): Promise<void> {
-    return this.prisma.$transaction(async (_tx) => {
+    return this.prisma.$transaction(async () => {
       const user = await this.upsertUser(this.prisma, eventData.data.user);
       const isTopEngagement = eventData.funnelStage === 'top';
 
